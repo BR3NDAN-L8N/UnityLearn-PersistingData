@@ -15,16 +15,18 @@ public class GameManager : MonoBehaviour
     // PROPS - MANUALLY SET
     private string defaultPlayerName = "Your Name Here...";
 
+    // AWAKE()
     private void Awake()
     {
         DM = GameObject.FindObjectOfType<DataManager>();
     }
 
+    // START()
     private void Start()
     {
         DM.LoadData();
-        textInput_playerName.SetTextWithoutNotify(DataManager.Instance.playerName);
-        textDisplay_highScore.text = "High Score: " + DataManager.Instance.highestScore + " : " + DataManager.Instance.playerName;
+        textInput_playerName.SetTextWithoutNotify(DataManager.Instance.playerName_highScore);
+        textDisplay_highScore.text = "High Score: " + DataManager.Instance.highestScore + " : " + DataManager.Instance.playerName_highScore;
     }
 
     // MENU - START BUTTON
@@ -33,13 +35,12 @@ public class GameManager : MonoBehaviour
         // HANDLE PLAYER NAME
         string playerNameText = textInput_playerName.text;  // get input text
         Debug.Log(playerNameText);                                  // log for reference
-
         if (playerNameText.Equals(defaultPlayerName)) { // handle player name not set
             playerNameText = "unknown";
         }
 
-        DataManager.Instance.playerName = playerNameText; // persist scene transition
-        DM.SaveData(playerNameText);                                  // persist game session
+        // SET PLAYER NAME IN INSTANCE
+        DM.SaveData_currentPlayersName(playerNameText);
 
         // LOAD SCENE
         SceneNavigator.GoToMainGameScene();
