@@ -2,13 +2,17 @@ using System;
 using System.IO;
 using UnityEngine;
 
+/// <summary>
+///     Handle saving data. SaveData(), LoadDate(), Instance.playerName_highScore, Instance.highestScore, Instance.playerName_currPlaying
+/// </summary>
 public class DataManager : MonoBehaviour
-{
+{   // SINGLETON
     public static DataManager Instance; // Instance is the Singleton
 
     // DATA TO SAVE
-    public String playerName;
-    public int? highestScore = null;
+    public String playerName_highScore;   // name of player with the highest score
+    public int? highestScore = null;             // the high score
+    public String playerName_currPlaying;  // name of the player who's currently playing
 
     private void Awake()
     {
@@ -43,84 +47,48 @@ public class DataManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Save data when you have both new player-name and a new highest-score
+    /// Save new score data (with current-players name) to a JSON file.
     /// </summary>
-    /// <param name="playerName"></param>
-    /// <param name="highestScore"></param>
-    public void SaveData(String playerName, int highestScore)
+    /// <param name="newHighScore">The high score gained after a the last game round.</param>
+    public void SaveData_newHighScore(int newHighScore)
     {
-        Data data = new Data(); // create instance of SaveData
-        data.playerName = playerName;       // set the player's name to the passed-in variable
-        data.highestScore = highestScore;
+        // ready new score to be saved
+        Data data = new Data();
+        data.playerName = playerName_currPlaying;
+        data.highestScore = newHighScore;
+
+        // update this.Instance
+        playerName_highScore = playerName_currPlaying;
+        highestScore = newHighScore;
 
         string json = JsonUtility.ToJson(data);  // convert SaveData instance to JSON
 
-        // Application.persistentDataPath == where all persistent data is stored by Unity
-        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);  // Create a JSON file and add the new JSON object
+        // save data - by writing to a JSON file
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
     }
 
     /// <summary>
-    /// Save data when you only have a new player-name. If no high-score has been recorded then it will be set to zero.
+    /// Save the current-players name to persist between scenes.
     /// </summary>
-    /// <param name="playerName">A String received after the user inputs their name into a text field.</param>
-    public void SaveData(String playerName)
+    /// <param name="name">A String received after the user inputs their name into a text field.</param>
+    public void SaveData_currentPlayersName(String name)
     {
-        Data data = new Data();                  // create instance of SaveData
-        data.playerName = playerName;       // set the player's name to the passed-in variable
-        
-        if (this.highestScore != null)                     // check if a high-score was recorded
-        {
-            data.highestScore = (int)highestScore; // save the recorded score,
-        }
-        else                                                       // or
-        {
-            data.highestScore = 0;                        // set the score to zero
-        }
-
-        string json = JsonUtility.ToJson(data);  // convert SaveData instance to JSON
-
-        // Application.persistentDataPath == where all persistent data is stored by Unity
-        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);  // Create a JSON file and add the new JSON object
+        Instance.playerName_currPlaying = name;
     }
 
     /// <summary>
-    /// Save data when you only have a new high-score.
-    /// </summary>
-    /// <param name="newHighScore">The score from the most recent game played</param>
-    public void SaveData(int newHighScore)
-    {
-        Data data = new Data();                                                                 // create instance of SaveData
-        data.playerName = playerName;                                                     // set the player's name to the passed-in variable
-
-        if (this.highestScore != null)                                                             // check if a high-score was recorded
-        {
-            data.highestScore = Math.Max(newHighScore, (int)highestScore); // determin the highest score that was recorded
-        }
-        else                                                                                               // or
-        {
-            data.highestScore = newHighScore;                                             // we'll save the new score
-        }
-
-        this.highestScore = data.highestScore;
-        string json = JsonUtility.ToJson(data);  // convert SaveData instance to JSON
-
-        // Application.persistentDataPath == where all persistent data is stored by Unity
-        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);  // Create a JSON file and add the new JSON object
-    }
-
-    /// <summary>
-    /// Simply load the data.
+    /// Simply load the data that was last saved to JSON.
     /// </summary>
     public void LoadData()
     {
-        string path = Application.persistentDataPath + "/savefile.json"; // grab the data from Unity's persitent stuff
-        if (File.Exists(path))  // if a file exists (as in was saved previously)
+        string path = Application.persistentDataPath + "/savefile.json"; 
+        if (File.Exists(path))  // if (a file was saved previously)
         {
             string json = File.ReadAllText(path);                  // copy the text to a local var
             Data data = JsonUtility.FromJson<Data>(json); // convert stringified json to Class
 
-            playerName = data.playerName;    // get prev saved name
-            highestScore = data.highestScore; // get prev saved score
+            playerName_highScore = data.playerName;    // get prev saved name
+            highestScore = data.highestScore;                 // get prev saved score
         }
     }
 }
