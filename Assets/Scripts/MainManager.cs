@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class MainManager : MonoBehaviour
     [SerializeField] private Text HighScoreText;
     public Text ScoreText;
     public GameObject GameOverText;
-    
+    public GameObject GameResultText;
+
     private bool m_Started = false;
     private int m_Points;
     
@@ -29,7 +31,7 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        HighScoreText.text = "Best Score : " + DataManager.Instance.playerName + " :" + DataManager.Instance.highestScore;
+        HighScoreText.text = "Best Score : " + DataManager.Instance.playerName_highScore + " :" + DataManager.Instance.highestScore;
 
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
@@ -73,14 +75,26 @@ public class MainManager : MonoBehaviour
 
     void AddPoint(int point)
     {
-        m_Points += point;
+        m_Points += point + 100;
         ScoreText.text = $"Score : {m_Points}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
+
+        // DETERMINE WINNER
+        bool isWinner = m_Points > DataManager.Instance.highestScore;
+
+        // UPDATE RESULT TEXT
+        if (isWinner) GameResultText.GetComponent<TextMeshProUGUI>().text = "NEW HIGH SCORE! \n" + m_Points;
+        else GameResultText.GetComponent<TextMeshProUGUI>().text = "better luck next time!";
+
+        // ACTIVATE GAME OVER TEXT
         GameOverText.SetActive(true);
-        DM.SaveData(m_Points);
+        GameResultText.SetActive(true);
+
+        // HANDLE SAVING NEW HIGH-SCORE
+        if (isWinner) DM.SaveData_newHighScore(m_Points);
     }
 }
